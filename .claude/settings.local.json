@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s http://localhost:3000/login -o /dev/null -w \"login: %{http_code}\\\\n\")",
+      "Bash(curl -s http://localhost:3000/home -o /dev/null -w \"home: %{http_code}\\\\n\")",
+      "Bash(pkill -f \"next dev\")"
+    ]
+  }
+}
