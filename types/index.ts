@@ -24,7 +24,7 @@ export interface Goal {
   createdAt: Timestamp
 }
 
-export interface Record {
+export interface GoalRecord {
   recordId: string
   goalId: string
   userId: string
@@ -33,7 +33,7 @@ export interface Record {
   date: Timestamp
 }
 
-export const GOAL_TYPE_LABELS: Record<GoalType, { label: string; unit: string; recordLabel: string }> = {
+export const GOAL_TYPE_LABELS: { [K in GoalType]: { label: string; unit: string; recordLabel: string } } = {
   savings: { label: '저축', unit: '원', recordLabel: '오늘 저축한 금액' },
   fitness: { label: '운동', unit: '분', recordLabel: '오늘 운동 시간' },
   study:   { label: '공부', unit: '분', recordLabel: '오늘 공부 시간' },

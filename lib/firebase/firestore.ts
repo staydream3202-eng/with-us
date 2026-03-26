@@ -13,7 +13,7 @@ import {
   writeBatch,
 } from 'firebase/firestore'
 import { db } from './config'
-import type { Goal, Record } from '@/types'
+import type { Goal, GoalRecord } from '@/types'
 
 // ─── Goals ────────────────────────────────────────────────────────────────────
 
@@ -71,20 +71,20 @@ export async function deleteGoal(goalId: string): Promise<void> {
 // ─── Records ──────────────────────────────────────────────────────────────────
 
 /** 목표의 모든 기록 조회 (날짜 내림차순) */
-export async function getRecords(goalId: string): Promise<Record[]> {
+export async function getRecords(goalId: string): Promise<GoalRecord[]> {
   const q = query(
     collection(db, 'goals', goalId, 'records'),
     orderBy('date', 'desc'),
   )
   const snap = await getDocs(q)
-  return snap.docs.map((d) => ({ ...d.data(), recordId: d.id }) as Record)
+  return snap.docs.map((d) => ({ ...d.data(), recordId: d.id }) as GoalRecord)
 }
 
 /** 기록 추가 */
 export async function addRecord(
   goalId: string,
   userId: string,
-  data: Omit<Record, 'recordId' | 'goalId' | 'userId'>,
+  data: Omit<GoalRecord, 'recordId' | 'goalId' | 'userId'>,
 ): Promise<string> {
   const ref = await addDoc(collection(db, 'goals', goalId, 'records'), {
     ...data,
@@ -98,7 +98,7 @@ export async function addRecord(
 export async function updateRecord(
   goalId: string,
   recordId: string,
-  data: Partial<Omit<Record, 'recordId' | 'goalId' | 'userId'>>,
+  data: Partial<Omit<GoalRecord, 'recordId' | 'goalId' | 'userId'>>,
 ): Promise<void> {
   await updateDoc(doc(db, 'goals', goalId, 'records', recordId), data)
 }
