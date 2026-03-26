@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
+import { FirebaseError } from 'firebase/app'
 import { signInWithGoogle, signInWithEmail, signUpWithEmail } from '@/lib/firebase/auth'
 
 interface EmailFormData {
@@ -11,13 +12,38 @@ interface EmailFormData {
   nickname?: string
 }
 
+const FIREBASE_ERROR_MESSAGES: Record<string, string> = {
+  'auth/email-already-in-use':   '이미 사용 중인 이메일입니다.',
+  'auth/invalid-email':          '올바른 이메일 형식이 아닙니다.',
+  'auth/weak-password':          '비밀번호는 6자 이상이어야 합니다.',
+  'auth/user-not-found':         '존재하지 않는 계정입니다.',
+  'auth/wrong-password':         '비밀번호가 올바르지 않습니다.',
+  'auth/invalid-credential':     '이메일 또는 비밀번호가 올바르지 않습니다.',
+  'auth/too-many-requests':      '잠시 후 다시 시도해주세요.',
+  'auth/popup-closed-by-user':   '로그인 창이 닫혔습니다. 다시 시도해주세요.',
+  'auth/cancelled-popup-request':'로그인이 취소되었습니다.',
+}
+
+function getFirebaseErrorMessage(error: unknown, fallback: string): string {
+  if (error instanceof FirebaseError) {
+    return FIREBASE_ERROR_MESSAGES[error.code] ?? fallback
+  }
+  return fallback
+}
+
 export default function LoginPage() {
   const router = useRouter()
   const [mode, setMode]       = useState<'login' | 'signup'>('login')
   const [error, setError]     = useState('')
   const [loading, setLoading] = useState(false)
 
-  const { register, handleSubmit, formState: { errors } } = useForm<EmailFormData>()
+  const { register, handleSubmit, reset, formState: { errors } } = useForm<EmailFormData>()
+
+  function switchMode(next: 'login' | 'signup') {
+    setMode(next)
+    setError('')
+    reset()
+  }
 
   async function handleGoogle() {
     setError('')
@@ -25,8 +51,8 @@ export default function LoginPage() {
     try {
       await signInWithGoogle()
       router.replace('/home')
-    } catch (e: unknown) {
-      setError('Google 로그인에 실패했습니다.')
+    } catch (e) {
+      setError(getFirebaseErrorMessage(e, 'Google 로그인에 실패했습니다.'))
     } finally {
       setLoading(false)
     }
@@ -42,11 +68,14 @@ export default function LoginPage() {
         await signUpWithEmail(data.email, data.password, data.nickname ?? '사용자')
       }
       router.replace('/home')
-    } catch (e: unknown) {
+    } catch (e) {
       setError(
-        mode === 'login'
-          ? '이메일 또는 비밀번호가 올바르지 않습니다.'
-          : '회원가입에 실패했습니다. 다시 시도해주세요.',
+        getFirebaseErrorMessage(
+          e,
+          mode === 'login'
+            ? '이메일 또는 비밀번호가 올바르지 않습니다.'
+            : '회원가입에 실패했습니다. 다시 시도해주세요.',
+        ),
       )
     } finally {
       setLoading(false)
@@ -86,11 +115,13 @@ export default function LoginPage() {
         </div>
 
         {/* 이메일 폼 */}
-        <form onSubmit={handleSubmit(handleEmailSubmit)} className="space-y-3">
+        <form onSubmit={handleSubmit(handleEmailSubmit)} className="space-y-3" noValidate>
           {mode === 'signup' && (
             <div>
               <input
-                {...register('nickname', { required: '닉네임을 입력해주세요' })}
+                {...register('nickname', {
+                  required: mode === 'signup' ? '닉네임을 입력해주세요' : false,
+                })}
                 placeholder="닉네임"
                 className="w-full min-h-[44px] rounded-xl border border-gray-200 px-4 text-sm md:text-base outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
               />
@@ -132,7 +163,11 @@ export default function LoginPage() {
             )}
           </div>
 
-          {error && <p className="text-xs text-red-500">{error}</p>}
+          {error && (
+            <p className="rounded-lg bg-red-50 px-3 py-2 text-xs md:text-sm text-red-600">
+              {error}
+            </p>
+          )}
 
           <button
             type="submit"
@@ -147,7 +182,8 @@ export default function LoginPage() {
         <p className="mt-5 text-center text-sm text-gray-500">
           {mode === 'login' ? '아직 계정이 없나요?' : '이미 계정이 있나요?'}
           <button
-            onClick={() => { setMode(mode === 'login' ? 'signup' : 'login'); setError('') }}
+            type="button"
+            onClick={() => switchMode(mode === 'login' ? 'signup' : 'login')}
             className="ml-1 font-medium text-indigo-500 hover:underline"
           >
             {mode === 'login' ? '회원가입' : '로그인'}
