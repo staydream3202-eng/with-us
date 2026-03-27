@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { PlusIcon } from '@heroicons/react/24/outline'
 import { useAuth } from '@/hooks/useAuth'
 import { getGoals, calcProgress } from '@/lib/firebase/firestore'
@@ -14,6 +15,7 @@ interface GoalWithProgress {
 
 export default function HomePage() {
   const { user } = useAuth()
+  const router   = useRouter()
   const [items, setItems]     = useState<GoalWithProgress[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -49,8 +51,9 @@ export default function HomePage() {
           </h1>
           <p className="mt-0.5 text-sm text-gray-500">오늘도 목표를 향해 한 걸음!</p>
         </div>
-        {/* 목표 추가 버튼 (향후 GoalForm 모달 연결) */}
+        {/* 목표 추가 버튼 */}
         <button
+          onClick={() => router.push('/goals/new')}
           className="flex items-center gap-1.5 rounded-xl bg-indigo-500 px-3 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-600 active:scale-95"
           aria-label="목표 추가"
         >
