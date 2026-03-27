@@ -1,6 +1,6 @@
 import { Timestamp } from 'firebase/firestore'
 
-export type GoalType = 'savings' | 'fitness' | 'study' | 'quit' | 'custom'
+export type GoalType = 'savings' | 'fitness' | 'study' | 'custom'
 
 export interface User {
   uid: string
@@ -37,6 +37,5 @@ export const GOAL_TYPE_LABELS: { [K in GoalType]: { label: string; unit: string;
   savings: { label: '저축', unit: '원', recordLabel: '오늘 저축한 금액' },
   fitness: { label: '운동', unit: '분', recordLabel: '오늘 운동 시간' },
   study:   { label: '공부', unit: '분', recordLabel: '오늘 공부 시간' },
-  quit:    { label: '금연', unit: '일', recordLabel: '참은 날' },
   custom:  { label: '기타', unit: '',   recordLabel: '오늘 달성 수치' },
 }

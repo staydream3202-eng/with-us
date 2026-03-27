@@ -4,13 +4,19 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { PlusIcon } from '@heroicons/react/24/outline'
 import { useAuth } from '@/hooks/useAuth'
-import { getGoals, calcProgress } from '@/lib/firebase/firestore'
+import { subscribeGoals, getRecords } from '@/lib/firebase/firestore'
 import GoalCard from '@/components/goals/GoalCard'
 import type { Goal } from '@/types'
 
 interface GoalWithProgress {
   goal: Goal
   progress: number
+}
+
+async function calcProgressLocal(goalId: string, targetValue: number): Promise<number> {
+  const records = await getRecords(goalId)
+  const total   = records.reduce((sum, r) => sum + r.value, 0)
+  return Math.min(Math.round((total / targetValue) * 100), 100)
 }
 
 export default function HomePage() {
@@ -22,23 +28,21 @@ export default function HomePage() {
   useEffect(() => {
     if (!user) return
 
-    async function fetchGoals() {
-      setLoading(true)
-      try {
-        const goals = await getGoals(user!.uid)
-        const withProgress = await Promise.all(
-          goals.map(async (goal) => ({
-            goal,
-            progress: await calcProgress(goal.goalId, goal.targetValue),
-          })),
-        )
-        setItems(withProgress)
-      } finally {
-        setLoading(false)
-      }
-    }
+    setLoading(true)
 
-    fetchGoals()
+    // onSnapshot으로 실시간 구독 — 목표가 추가/변경되면 자동 갱신
+    const unsubscribe = subscribeGoals(user.uid, async (goals) => {
+      const withProgress = await Promise.all(
+        goals.map(async (goal) => ({
+          goal,
+          progress: await calcProgressLocal(goal.goalId, goal.targetValue),
+        })),
+      )
+      setItems(withProgress)
+      setLoading(false)
+    })
+
+    return unsubscribe
   }, [user])
 
   return (

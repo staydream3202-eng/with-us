@@ -17,7 +17,6 @@ const TYPE_COLORS: Record<string, string> = {
   savings: 'bg-emerald-100 text-emerald-700',
   fitness: 'bg-orange-100 text-orange-700',
   study:   'bg-blue-100 text-blue-700',
-  quit:    'bg-purple-100 text-purple-700',
   custom:  'bg-gray-100 text-gray-600',
 }
 

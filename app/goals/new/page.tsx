@@ -13,7 +13,6 @@ const TYPE_OPTIONS: { type: GoalType; emoji: string; color: string; border: stri
   { type: 'savings', emoji: '💰', color: 'bg-emerald-50 text-emerald-700', border: 'border-emerald-300' },
   { type: 'fitness', emoji: '🏃', color: 'bg-orange-50 text-orange-700',  border: 'border-orange-300'  },
   { type: 'study',   emoji: '📚', color: 'bg-blue-50 text-blue-700',      border: 'border-blue-300'    },
-  { type: 'quit',    emoji: '🚭', color: 'bg-purple-50 text-purple-700',  border: 'border-purple-300'  },
   { type: 'custom',  emoji: '✨', color: 'bg-gray-50 text-gray-700',      border: 'border-gray-300'    },
 ]
 
@@ -124,7 +123,6 @@ export default function NewGoalPage() {
                 selectedType === 'savings' ? '예: 여행 자금 모으기' :
                 selectedType === 'fitness' ? '예: 하루 30분 운동' :
                 selectedType === 'study'   ? '예: 영어 공부 100시간' :
-                selectedType === 'quit'    ? '예: 금연 100일' :
                 '목표 이름을 입력하세요'
               }
               maxLength={30}

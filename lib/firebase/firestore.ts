@@ -9,6 +9,7 @@ import {
   query,
   where,
   orderBy,
+  onSnapshot,
   serverTimestamp,
   writeBatch,
 } from 'firebase/firestore'
@@ -22,11 +23,23 @@ export async function getGoals(userId: string): Promise<Goal[]> {
   const q = query(
     collection(db, 'goals'),
     where('userId', '==', userId),
-    orderBy('priority', 'asc'),
     orderBy('createdAt', 'desc'),
   )
   const snap = await getDocs(q)
   return snap.docs.map((d) => ({ ...d.data(), goalId: d.id }) as Goal)
+}
+
+/** 목표 실시간 구독 — 언구독 함수 반환 */
+export function subscribeGoals(userId: string, callback: (goals: Goal[]) => void): () => void {
+  const q = query(
+    collection(db, 'goals'),
+    where('userId', '==', userId),
+    orderBy('createdAt', 'desc'),
+  )
+  return onSnapshot(q, (snap) => {
+    const goals = snap.docs.map((d) => ({ ...d.data(), goalId: d.id }) as Goal)
+    callback(goals)
+  })
 }
 
 /** 목표 단건 조회 */
