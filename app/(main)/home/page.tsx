@@ -20,30 +20,49 @@ async function calcProgressLocal(goalId: string, targetValue: number): Promise<n
 }
 
 export default function HomePage() {
-  const { user } = useAuth()
+  const { user, loading: authLoading } = useAuth()
   const router   = useRouter()
   const [items, setItems]     = useState<GoalWithProgress[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!user) return
+    // Auth 초기화 중 — 대기
+    if (authLoading) return
+
+    // 비로그인 — 로딩 종료 후 빈 상태 표시
+    if (!user) {
+      setLoading(false)
+      return
+    }
 
     setLoading(true)
 
     // onSnapshot으로 실시간 구독 — 목표가 추가/변경되면 자동 갱신
-    const unsubscribe = subscribeGoals(user.uid, async (goals) => {
-      const withProgress = await Promise.all(
-        goals.map(async (goal) => ({
-          goal,
-          progress: await calcProgressLocal(goal.goalId, goal.targetValue),
-        })),
-      )
-      setItems(withProgress)
-      setLoading(false)
-    })
+    const unsubscribe = subscribeGoals(
+      user.uid,
+      async (goals) => {
+        try {
+          const withProgress = await Promise.all(
+            goals.map(async (goal) => ({
+              goal,
+              progress: await calcProgressLocal(goal.goalId, goal.targetValue),
+            })),
+          )
+          setItems(withProgress)
+        } catch {
+          setItems(goals.map((goal) => ({ goal, progress: 0 })))
+        } finally {
+          setLoading(false)
+        }
+      },
+      (error) => {
+        console.error('[subscribeGoals error]', error)
+        setLoading(false)
+      },
+    )
 
     return unsubscribe
-  }, [user])
+  }, [user, authLoading])
 
   return (
     <div className="px-4 md:px-6 py-6">

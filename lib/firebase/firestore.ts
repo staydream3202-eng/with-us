@@ -30,16 +30,24 @@ export async function getGoals(userId: string): Promise<Goal[]> {
 }
 
 /** 목표 실시간 구독 — 언구독 함수 반환 */
-export function subscribeGoals(userId: string, callback: (goals: Goal[]) => void): () => void {
+export function subscribeGoals(
+  userId: string,
+  callback: (goals: Goal[]) => void,
+  onError?: (error: Error) => void,
+): () => void {
   const q = query(
     collection(db, 'goals'),
     where('userId', '==', userId),
     orderBy('createdAt', 'desc'),
   )
-  return onSnapshot(q, (snap) => {
-    const goals = snap.docs.map((d) => ({ ...d.data(), goalId: d.id }) as Goal)
-    callback(goals)
-  })
+  return onSnapshot(
+    q,
+    (snap) => {
+      const goals = snap.docs.map((d) => ({ ...d.data(), goalId: d.id }) as Goal)
+      callback(goals)
+    },
+    onError,
+  )
 }
 
 /** 목표 단건 조회 */

@@ -63,10 +63,24 @@ export default function PlannerPage() {
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ message: text, goals }),
       })
-      const data = await res.json()
 
+      // 응답 텍스트 먼저 읽기 — JSON 파싱 전 ok 체크
+      const responseText = await res.text()
       if (!res.ok) {
-        throw new Error(data.error ?? 'AI 응답 오류')
+        let errorMsg = 'AI 응답 오류'
+        try { errorMsg = JSON.parse(responseText).error ?? errorMsg } catch {}
+        throw new Error(errorMsg)
+      }
+
+      let data: { reply: string; suggestedGoal?: SuggestedGoal }
+      try {
+        data = JSON.parse(responseText)
+      } catch {
+        throw new Error('AI 응답 파싱 오류가 발생했어요.')
+      }
+
+      if (!data.reply) {
+        throw new Error('AI로부터 빈 응답을 받았어요.')
       }
 
       const aiMsg: Message = {
